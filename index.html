@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TM CAR - Gestão Completa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #F5F5F0;
+            color: #1a1a1a;
+            line-height: 1.4;
+            transition: background-color 0.3s, color 0.2s;
+        }
+        body.dark-theme { background: #0A0A0F; color: #E8E8F0; }
+        body.dark-theme .form-card,
+        body.dark-theme .section-card,
+        body.dark-theme .dashboard-modern,
+        body.dark-theme .chart-container,
+        body.dark-theme .transacao-item,
+        body.dark-theme .modal-content,
+        body.dark-theme .resumo-card {
+            background: #161622;
+            border: 1px solid #2A2A3A;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        body.dark-theme .form-group input,
+        body.dark-theme .form-group select,
+        body.dark-theme .form-group textarea {
+            background: #1E1E2E;
+            border-color: #3A3A4A;
+            color: #F0F0FF;
+        }
+        body.dark-theme .btn-salvar { background: linear-gradient(135deg, #3B82F6, #1E40AF); }
+        body.dark-theme .card-modern { background: #1E1E2E; }
+        body.dark-theme .tab.active { color: #3B82F6; border-bottom-color: #3B82F6; }
+        body.dark-theme .logo-principal { color: #F43F5E; }
+        body.dark-theme .info-grupo { color: #aaa; }
+        body.dark-theme .resultado-item { background: #2A2A3A; }
+        body.dark-theme .financa-card { background: #2A2A3A; }
+        body.dark-theme .resumo-card { background: #0A0A14 !important; border: 1px solid #2A2A3A !important; color: #ffffff; }
+        .financa-card .label, .financa-card .value { color: white !important; text-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+        .transacao-item { background: white; color: #1a1a1a; }
+        body.dark-theme .transacao-item { background: #1E1E2E; color: #f0f0f0; }
+        .container { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 80px; }
+        .header { padding: 20px 20px 0px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .logo-principal { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: #E63946; }
+        .logo-sub { font-size: 10px; color: #888; letter-spacing: 1px; margin-top: 2px; }
+        .settings-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; color: #666; }
+        .tabs-container { padding: 12px 12px 0; border-bottom: 1px solid #E0E0DB; }
+        .tabs-row { display: flex; justify-content: space-around; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+        .tab { flex: 1; text-align: center; padding: 10px 0; font-size: 12px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; background: none; transition: all 0.2s; white-space: nowrap; }
+        .page { display: none; padding: 20px; }
+        .page.active { display: block; }
+        .form-card, .section-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .form-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 500; color: #666; margin-bottom: 6px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #E0E0DB; border-radius: 12px; font-size: 14px; background: white; font-family: inherit; }
+        .btn-salvar { background: #1a1a1a; color: white; border: none; padding: 14px; border-radius: 40px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; transition: all 0.2s; }
+        .btn-salvar:hover { background: #333; }
+        .transacao-item { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+        .badge.pago { background: #00c853; color: white; }
+        .badge.pendente { background: #ff9800; color: #000; }
+        .status-ok { background: #D4EDDA; color: #155724; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+        body.dark-theme .status-ok { background: #1A2A1A; color: #81C784; }
+        .flex-buttons { display: flex; gap: 12px; align-items: center; margin-top: 16px; justify-content: center; }
+        .btn-delete { color: #ff4444; background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px; }
+        .btn-edit { color: #2196F3; background: none; border: none; font-size: 18px; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px 20px 32px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #888; }
+        .empty-state { text-align: center; padding: 40px 20px; color: #888; }
+        .snackbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 12px 20px; border-radius: 40px; font-size: 13px; z-index: 1100; white-space: nowrap; }
+        .dashboard-modern { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; }
+        .cards-grid-modern { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        .card-modern { border-radius: 20px; padding: 16px; color: white; cursor: pointer; }
+        .card-modern .card-value { font-size: 24px; font-weight: 700; }
+        .card-receita { background: #2E7D32; }
+        .card-despesa { background: #C62828; }
+        .card-outro { background: #1a1a1a; }
+        .chart-container { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .resultado-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .resultado-item { background: #f9f9f9; padding: 12px; border-radius: 12px; text-align: center; }
+        .resultado-item label { font-size: 11px; color: #666; display: block; }
+        .resultado-item span { font-size: 16px; font-weight: 600; }
+        .financas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+        .financa-card { background: #f9f9f9; border-radius: 16px; padding: 12px; text-align: center; }
+        .financa-card .label { font-size: 12px; font-weight: 500; }
+        .financa-card .value { font-size: 18px; font-weight: 700; }
+        .lancamentos-lista { max-height: 200px; overflow-y: auto; }
+        .info-grupo { font-size: 12px; margin-top: 4px; color: #2E7D32; }
+        .theme-btn { background: #1a1a1a; color: white; border: none; padding: 10px; border-radius: 40px; cursor: pointer; margin-top: 10px; width: 100%; font-size: 14px; }
+        .btn-reset-config { background: #ff9800; color: #1a1a1a; margin-top: 8px; }
+        .btn-backup { background: #2E7D32; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
+        .btn-restore { background: #F57C00; color: white; border: none; padding: 12px; border-radius: 40px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; margin-top: 8px; }
+        .btn-add-item { background: #2196F3; color: white; border: none; padding: 10px; border-radius: 40px; font-weight: 600; font-size: 14px; cursor: pointer; width: 100%; margin-bottom: 16px; }
+        .btn-pago { background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; margin: 0 4px; }
+        .btn-pagar { background: #4CAF50; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; }
+        .btn-excluir { background: #ff4444; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; }
+        .servico-info { font-size: 12px; color: #666; }
+        .backup-info { background: #f0f0f0; padding: 12px; border-radius: 12px; margin: 12px 0; text-align: center; font-size: 13px; }
+        body.dark-theme .backup-info { background: #2A2A3A; }
+        .veiculo-tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 500; margin-left: 4px; }
+        body.dark-theme .veiculo-tag { background: #1a2a3a; color: #5b9bd5; }
+        
+        /* ===== MODAL DE PAGAMENTO ===== */
+        .pagamento-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #E0E0DB;
+        }
+        body.dark-theme .pagamento-item { border-bottom-color: #2A2A3A; }
+        .pagamento-item:last-child { border-bottom: none; }
+        
+        .pagamento-titulo {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .pagamento-data {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .pagamento-total {
+            font-size: 13px;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        body.dark-theme .pagamento-total { color: #f0f0f0; }
+        .pagamento-total strong { font-weight: 700; }
+        
+        .pagamento-campo {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .pagamento-campo input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #E0E0DB;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            background: white;
+            font-family: inherit;
+        }
+        body.dark-theme .pagamento-campo input {
+            background: #1E1E2E;
+            border-color: #3A3A4A;
+            color: #F0F0FF;
+        }
+        
+        .pagamento-campo button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .pagamento-saldo {
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .pagamento-saldo.pendente {
+            background: #FFF3CD;
+            color: #856404;
+            display: block;
+        }
+        body.dark-theme .pagamento-saldo.pendente {
+            background: #2A2A1A;
+            color: #FFD54F;
+        }
+        
+        .pagamento-saldo.quitado {
+            background: #D4EDDA;
+            color: #155724;
+            display: block;
+        }
+        body.dark-theme .pagamento-saldo.quitado {
+            background: #1A2A1A;
+            color: #81C784;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-top">
+            <div class="logo">
+                <div class="logo-principal" id="logoPrincipal">TM CAR</div>
+                <div class="logo-sub" id="logoSub">Artur dos Santos Domiciano</div>
+            </div>
+            <button class="settings-btn" onclick="abrirConfiguracoes()"><i class="fas fa-cog"></i></button>
+        </div>
+    </div>
+    <div class="tabs-container">
+        <div class="tabs-row">
+            <div class="tab active" data-page="novoServico">📝 Novo Serviço</div>
+            <div class="tab" data-page="clientes">👥 Clientes</div>
+            <div class="tab" data-page="orcamentos">📄 Orçamentos</div>
+            <div class="tab" data-page="dashboard">📊 Dashboard</div>
+        </div>
+        <div class="tabs-row">
+            <div class="tab" data-page="financeiro">💰 Financeiro</div>
+            <div class="tab" data-page="agendamentos">📅 Agendamentos</div>
+            <div class="tab" data-page="contas">📋 Contas</div>
+            <div class="tab" data-page="analise">📊 Análise</div>
+        </div>
+    </div>
+
+    <!-- PÁGINA: Novo Serviço -->
+    <div id="pageNovoServico" class="page active">
+        <div class="form-card">
+            <div class="form-title">📝 Novo Serviço</div>
+            <div class="form-group"><label>Cliente</label><input type="text" id="novoServicoNome" list="clientesListGlobal"><datalist id="clientesListGlobal"></datalist></div>
+            <div class="form-group" id="grupoVeiculoNovoServico" style="display:none"><label>Veículo</label><select id="veiculoSelecionadoServico"></select></div>
+            <div class="form-group"><label>Serviço</label><select id="tipoServico"></select></div>
+            <div class="form-group"><label>Valor (R$)</label><input type="text" id="novoServicoValorRapido" placeholder="0,00" oninput="formatarValorEntrada(this)"></div>
+            <button class="btn-salvar" onclick="salvarServicoRapido()">✅ SALVAR SERVIÇO</button>
+        </div>
+        <div class="form-card"><div class="form-title">📋 Histórico de Serviços</div><div id="historicoServicos"></div></div>
+    </div>
+
+    <!-- PÁGINA: Clientes -->
+    <div id="pageClientes" class="page">
+        <div class="form-card">
+            <div class="form-title" id="formTitulo">➕ Adicionar Cliente</div>
+            <div class="form-group"><label>Nome</label><input id="cadastroNome"></div>
+            <div class="form-group"><label>WhatsApp</label><input id="cadastroTelefone" placeholder="11999999999"></div>
+            <div class="form-title" style="font-size:14px">🚗 Veículos</div><div id="veiculosCadastroLista"></div>
+            <button class="btn-add-item" onclick="abrirModalAdicionarVeiculo()">+ Adicionar Veículo</button>
+            <button class="btn-salvar" id="btnSalvarCliente" onclick="cadastrarClienteCompleto()">✅ CADASTRAR</button>
+            <button class="btn-salvar" style="background:#ff9800; display:none" id="btnCancelarEdicao" onclick="cancelarEdicao()">❌ Cancelar Edição</button>
+        </div>
+        <div class="form-card">
+            <div class="form-title">🔍 Clientes Cadastrados</div>
+            <div class="form-group"><input type="text" id="buscaCliente" placeholder="Buscar..." onkeyup="filtrarClientes()" style="width:100%"></div>
+            <div id="listaClientesCadastro"></div>
+        </div>
+    </div>
+
+    <!-- PÁGINA: Orçamentos -->
+    <div id="pageOrcamentos" class="page">
+        <div class="form-card">
+            <div class="form-title">📝 Novo Orçamento</div>
+            <div class="form-group"><label>Cliente</label><input type="text" id="orcamentoClienteNome" list="clientesListOrc" placeholder="Nome do cliente"><datalist id="clientesListOrc"></datalist></div>
+            <div id="listaItensOrcamento"></div>
+            <button class="btn-add-item" onclick="adicionarItemOrcamento()">+ Adicionar Item</button>
+            <div class="form-group"><label>Total: <span id="totalOrcamentoPreview">R$ 0,00</span></label></div>
+            <button class="btn-salvar" onclick="salvarOrcamento()">💾 SALVAR ORÇAMENTO</button>
+        </div>
+        <div class="form-card"><div class="form-title">📋 Orçamentos Recentes</div><div id="listaOrcamentos"></div></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="pageDashboard" class="page">
+        <div class="dashboard-modern">
+            <div class="cards-grid-modern" id="cardsContainer"></div>
+            <div class="chart-container"><h3><i class="fas fa-chart-pie"></i> Participação por Serviço (Receita)</h3><canvas id="servicesChart" width="400" height="200"></canvas></div>
+            <div class="chart-container"><h3><i class="fas fa-chart-line"></i> Evolução Mensal</h3><canvas id="evolutionChart" width="400" height="200"></canvas></div>
+            <div class="chart-container"><h3><i class="fas fa-coins"></i> Resumo Financeiro do Mês</h3><div class="financas-grid" id="financasGrid"></div></div>
+            <div class="chart-container"><h3><i class="fas fa-credit-card"></i> Contas a Pagar (Despesas)</h3><div id="contasPagarLista" class="lancamentos-lista"></div></div>
+            <div class="chart-container"><h3><i class="fas fa-boxes"></i> Custos do Mês</h3><div id="custosLista" class="lancamentos-lista"></div></div>
+            <div class="chart-container"><h3><i class="fas fa-list"></i> Últimos Lançamentos</h3><div id="ultimosLancamentos" class="lancamentos-lista"></div></div>
+            <div class="chart-container"><h3><i class="fas fa-calendar-week"></i> Próximos Agendamentos</h3><div id="agendaList"></div></div>
+        </div>
+    </div>
+
+    <!-- PÁGINA: Financeiro -->
+    <div id="pageFinanceiro" class="page"><div class="form-card"><div class="form-title">💰 FINANCEIRO - CLIENTES</div><div id="listaClientesFinanceiro"></div></div></div>
+
+    <!-- PÁGINA: Agendamentos -->
+    <div id="pageAgendamentos" class="page">
+        <div class="form-card">
+            <div class="form-title">📅 Novo Agendamento</div>
+            <div class="form-group"><label>Cliente</label><input id="agendaClienteNome" list="clientesListAgenda"><datalist id="clientesListAgenda"></datalist></div>
+            <div class="form-group"><label>Tipo de Serviço</label><select id="agendaTipoServico" onchange="carregarDescricaoAgendamento()"></select></div>
+            <div class="form-group"><label>Data</label><input type="date" id="agendaData"></div>
+            <div class="form-group"><label>Hora</label><input type="time" id="agendaHora"></div>
+            <div class="form-group"><label>Status</label><select id="agendaStatus"><option>Pendente</option><option>Confirmado</option><option>Concluído</option><option>Cancelado</option></select></div>
+            <div class="form-group"><label>Descrição</label><textarea id="agendaDescricao" rows="3"></textarea></div>
+            <button class="btn-salvar" onclick="salvarAgendamento()">💾 SALVAR</button>
+        </div>
+        <div class="form-card"><div class="form-title">📋 Próximos Agendamentos</div><div id="listaAgendamentos"></div></div>
+    </div>
+
+    <!-- PÁGINA: Contas -->
+    <div id="pageContas" class="page">
+        <div class="form-card">
+            <div class="form-title">📝 Adicionar Lançamento</div>
+            <div class="form-group"><label>Categoria</label><select id="contaCategoria"><optgroup label="💰 CUSTOS"><option>💧 Água</option><option>💡 Luz</option><option>📦 Produtos</option><option>🧴 Material de limpeza</option><option>🔧 Ferramentas</option></optgroup><optgroup label="📄 DESPESAS"><option>🌐 Internet</option><option>🏠 Aluguel</option><option>📉 Pró-labore</option><option>🚗 Combustível</option><option>📋 Outros</option></optgroup></select><div id="grupoInfo" class="info-grupo"></div></div>
+            <div class="form-group"><label>Valor (R$)</label><input type="text" id="contaValor" placeholder="0,00" oninput="formatarValorEntrada(this)"></div>
+            <div class="form-group"><label>Observação</label><textarea id="contaObs" rows="2"></textarea></div>
+            <button class="btn-salvar" onclick="adicionarConta()">✅ ADICIONAR</button>
+        </div>
+        <div class="resumo-card" style="background:white; border-radius:16px; padding:20px; margin-bottom:20px;">
+            <div>💰 Total de Gastos (Mês)</div>
+            <div class="resumo-valor" id="totalDespesasMes">R$ 0,00</div>
+            <div style="font-size:12px">📊 Média diária: <span id="mediaDiaria">R$ 0,00</span></div>
+        </div>
+        <div class="form-card"><div class="form-title">📋 Despesas do Mês</div><div id="listaDespesas"></div></div>
+        <div class="form-card"><div class="form-title">📦 Custos do Mês</div><div id="listaCustos"></div></div>
+    </div>
+
+    <!-- PÁGINA: Análise -->
+    <div id="pageAnalise" class="page">
+        <div class="form-card">
+            <div class="form-title">📊 Análise de Serviços <button class="settings-btn" onclick="abrirConfigCalculadoraAnalise()" title="Configurar parâmetros"><i class="fas fa-cog"></i></button></div>
+            <div class="form-group"><label>Serviço</label><select id="analiseServicoSelect" style="width:100%" onchange="calcularAnalise()"></select></div>
+            <div class="form-group"><label>💰 Preço de venda (R$)</label><input type="text" id="analisePreco" placeholder="0,00" oninput="formatarValorEntrada(this); calcularAnalise();"></div>
+            <div class="form-group"><label>📦 Custo do material (R$)</label><input type="text" id="analiseMaterial" placeholder="0,00" oninput="formatarValorEntrada(this); calcularAnalise();"></div>
+            <div class="form-group"><label>⏱️ Tempo gasto (horas)</label><input type="text" id="analiseTempo" placeholder="0,0" oninput="calcularAnalise()"></div>
+            <div class="form-group"><label>➕ Outros custos (R$)</label><input type="text" id="analiseOutros" placeholder="0,00" oninput="formatarValorEntrada(this); calcularAnalise();"></div>
+            <div class="form-group"><label>📅 Data</label><input type="date" id="analiseData" value=""></div>
+            <div class="form-title">📊 Resultados</div>
+            <div class="resultado-grid">
+                <div class="resultado-item"><label>Custo total</label><span id="analiseCustoTotal">R$ 0,00</span></div>
+                <div class="resultado-item"><label>Lucro</label><span id="analiseLucro">R$ 0,00</span></div>
+                <div class="resultado-item"><label>Margem</label><span id="analiseMargem">0,0%</span></div>
+                <div class="resultado-item"><label>Lucro por hora</label><span id="analiseLucroHora">R$ 0,00</span></div>
+            </div>
+            <button class="btn-salvar" onclick="registrarExecucao()">💾 Registrar execução</button>
+        </div>
+        <div class="form-card">
+            <div class="form-title">📜 Histórico de serviços realizados</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <select id="filtroServico" style="flex:2" onchange="renderizarHistoricoAnalise()"><option value="">Todos os serviços</option></select>
+                <select id="filtroOrdenar" style="flex:1" onchange="renderizarHistoricoAnalise()"><option value="data">Data (recente)</option><option value="lucro">Maior lucro</option><option value="margem">Maior margem</option></select>
+            </div>
+            <div id="historicoListaAnalise" style="max-height: 300px; overflow-y: auto;"></div>
+        </div>
+        <div class="form-card"><div class="form-title">📈 Resumo de rentabilidade</div><div id="resumoRentabilidadeAnalise"></div></div>
+    </div>
+</div>
+
+<!-- MODAIS -->
+<div id="modalConfig" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>⚙️ Configurações</h3>
+            <button class="close-modal" onclick="fecharModal('modalConfig')">✕</button>
+        </div>
+        
+        <div class="form-group"><label>Nome da Empresa</label><input id="configNomeEmpresa" placeholder="TM CAR"></div>
+        <div class="form-group"><label>Nome do Responsável</label><input id="configResponsavel" placeholder="Artur dos Santos Domiciano"></div>
+        <div class="form-group"><label>CNPJ</label><input id="configCnpj" placeholder="52.928.849/0001-23"></div>
+        <div class="form-group"><label>Chave Pix</label><input id="configChavePix" placeholder="52.928.849/0001-23"></div>
+        <div class="form-group"><label>Endereço</label><input id="configEndereco" placeholder="Rua Lincoln N 35, Jardim Revista, Suzano"></div>
+        
+        <hr style="margin: 16px 0; border-color: #ddd;">
+        
+        <div class="form-title" style="font-size:14px;">💾 BACKUP DO SISTEMA</div>
+        
+        <div id="backupInfo" class="backup-info">
+            📅 Último backup: <span id="ultimoBackup">Nunca feito</span>
+        </div>
+        
+        <button class="btn-backup" onclick="exportarBackupCompleto()">
+            <i class="fas fa-download"></i> 📥 Exportar Backup Completo
+        </button>
+        
+        <button class="btn-restore" onclick="importarBackupCompleto()">
+            <i class="fas fa-upload"></i> 📤 Importar Backup
+        </button>
+        
+        <div style="font-size:11px; color:#888; text-align:center; margin-top:8px;">
+            O backup inclui: Clientes, Serviços, Contas, Orçamentos, Agendamentos, Recebimentos e Configurações
+        </div>
+        
+        <hr style="margin: 16px 0; border-color: #ddd;">
+        
+        <button class="theme-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i> Alternar tema</button>
+        <button class="btn-salvar" onclick="salvarConfiguracoes()">Salvar Configurações</button>
+    </div>
+</div>
+
+<div id="modalDetalhesCliente" class="modal"><div class="modal-content"><div class="modal-header"><h3 id="modalClienteNome"></h3><button class="close-modal" onclick="fecharModal('modalDetalhesCliente')">✕</button></div><div id="modalClienteDetalhes"></div><button class="btn-salvar" onclick="enviarFaturaWhatsApp()">📱 Enviar Fatura</button></div></div>
+<div id="modalPagarCliente" class="modal"><div class="modal-content"><div class="modal-header"><h3>💰 Pagar Serviços</h3><button class="close-modal" onclick="fecharModal('modalPagarCliente')">✕</button></div><div id="listaServicosPendentes"></div></div></div>
+<div id="modalVeiculo" class="modal"><div class="modal-content"><div class="modal-header"><h3>Adicionar Veículo</h3><button class="close-modal" onclick="fecharModalVeiculo()">✕</button></div><div class="form-group"><label>Tipo</label><select id="tipoVeiculo"><option>Carro</option><option>Moto</option><option>Caminhão</option></select></div><div class="form-group"><label>Modelo</label><input id="modeloVeiculo"></div><button class="btn-salvar" onclick="salvarVeiculoTemp()">Adicionar</button></div></div>
+<div id="modalConfigCalculadoraAnalise" class="modal"><div class="modal-content"><div class="modal-header"><h3>⚙️ Configurações da Análise</h3><button class="close-modal" onclick="fecharModal('modalConfigCalculadoraAnalise')">✕</button></div><div class="form-group"><label>👨‍🔧 Salário base mensal (R$)</label><input id="configCalcSalario" type="text" value="1600"></div><div class="form-group"><label>💡 Equipamentos – Custo mensal (R$)</label><input id="configCalcEquipamento" type="text" value="550"></div><div class="form-group"><label>📉 Pró-labore mensal (R$)</label><input id="configCalcProlabore" type="text" value="2000"></div><div class="form-group"><label>🏠 Despesas fixas mensais (R$)</label><input id="configCalcDespesasFixas" type="text" value="2200"></div><div class="form-group"><label>⏱️ Jornada mensal (horas)</label><input id="configCalcJornadaAnalise" type="text" value="260"></div><button class="btn-salvar" onclick="salvarConfigCalculadoraAnalise()">Salvar</button><button class="btn-salvar btn-reset-config" onclick="resetarConfigCalculadoraAnalise()">Restaurar padrão</button></div></div>
+
+<script>
+    // ========== FUNÇÕES AUXILIARES ==========
+    function formatarMoeda(v) { 
+        if (isNaN(v)) v = 0;
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatarValorEntrada(input) {
+        let valor = input.value.replace(/[^0-9,]/g, '');
+        input.value = valor;
+    }
+
+    function parseFloatBrasil(valor) {
+        if (!valor || valor === '') return 0;
+        let str = valor.toString().trim();
+        str = str.replace(/\./g, '').replace(',', '.');
+        let num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function mostrarSnackbar(msg) { 
+        let s = document.getElementById('globalSnackbar'); 
+        if(!s){ 
+            s=document.createElement('div'); 
+            s.id='globalSnackbar'; 
+            s.className='snackbar'; 
+            document.body.appendChild(s); 
+        } 
+        s.textContent=msg; 
+        s.style.display='block'; 
+        setTimeout(()=>s.style.display='none',3000); 
+    }
+    
+    function fecharModal(id) { document.getElementById(id).classList.remove('active'); }
+    function gerarIdUnico() { return Date.now() + Math.floor(Math.random() * 10000); }
+
+    // ========== BACKUP COMPLETO ==========
+    function exportarBackupCompleto() {
+        try {
+            const dados = {
+                versao: "1.0",
+                dataExportacao: new Date().toISOString(),
+                clientes: localStorage.getItem("tmcar_clientes_final") || "[]",
+                contas: localStorage.getItem("tmcar_contas") || "[]",
+                orcamentos: localStorage.getItem("tmcar_orcamentos") || "[]",
+                agendamentos: localStorage.getItem("tmcar_agendamentos") || "[]",
+                recebimentos: localStorage.getItem("tmcar_recebimentos") || "[]",
+                registrosAnalise: localStorage.getItem("tmcar_registros_servicos") || "[]",
+                config: localStorage.getItem("tmcar_config") || "{}",
+                configAnalise: localStorage.getItem("tmcar_config_analise") || "{}",
+                tema: localStorage.getItem("tmcar_theme") || "light"
+            };
+            
+            let temDados = false;
+            for (let key in dados) {
+                if (dados[key] && dados[key] !== "[]" && dados[key] !== "{}") {
+                    temDados = true;
+                    break;
+                }
+            }
+            
+            if (!temDados) {
+                mostrarSnackbar("⚠️ Nenhum dado para exportar.");
+                return;
+            }
+            
+            const blob = new Blob([JSON.stringify(dados, null, 2)], {type: "application/json"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `backup_tmcar_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+            
+            localStorage.setItem("tmcar_ultimo_backup", new Date().toISOString());
+            atualizarInfoBackup();
+            mostrarSnackbar("✅ Backup exportado!");
+        } catch(e) {
+            mostrarSnackbar("❌ Erro: " + e.message);
+        }
+    }
+
+    function importarBackupCompleto() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.click();
+        
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (file.size === 0) {
+                mostrarSnackbar("❌ Arquivo vazio!");
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const dados = JSON.parse(ev.target.result);
+                    
+                    let ehBackupValido = false;
+                    if (dados.clientes || dados.contas || dados.orcamentos || 
+                        dados.agendamentos || dados.recebimentos || dados.config) {
+                        ehBackupValido = true;
+                    }
+                    if (dados.dados && dados.dados.clientes) {
+                        ehBackupValido = true;
+                        if (!dados.clientes) dados.clientes = dados.dados.clientes;
+                        if (!dados.contas) dados.contas = dados.dados.contas;
+                        if (!dados.orcamentos) dados.orcamentos = dados.dados.orcamentos;
+                        if (!dados.agendamentos) dados.agendamentos = dados.dados.agendamentos;
+                        if (!dados.config) dados.config = dados.dados.config;
+                    }
+                    
+                    if (!ehBackupValido) {
+                        mostrarSnackbar("❌ Arquivo inválido!");
+                        return;
+                    }
+                    
+                    let totalClientes = 0, totalContas = 0, totalOrcamentos = 0;
+                    try { if (dados.clientes) totalClientes = JSON.parse(dados.clientes).length; } catch(e) {}
+                    try { if (dados.contas) totalContas = JSON.parse(dados.contas).length; } catch(e) {}
+                    try { if (dados.orcamentos) totalOrcamentos = JSON.parse(dados.orcamentos).length; } catch(e) {}
+                    
+                    let msg = `📦 Dados encontrados:\n👥 Clientes: ${totalClientes}\n💰 Contas: ${totalContas}\n📄 Orçamentos: ${totalOrcamentos}\n\n⚠️ Isso vai SOBRESCREVER todos os dados atuais!`;
+                    
+                    if (!confirm(msg)) return;
+                    
+                    if (dados.clientes) localStorage.setItem("tmcar_clientes_final", dados.clientes);
+                    if (dados.contas) localStorage.setItem("tmcar_contas", dados.contas);
+                    if (dados.orcamentos) localStorage.setItem("tmcar_orcamentos", dados.orcamentos);
+                    if (dados.agendamentos) localStorage.setItem("tmcar_agendamentos", dados.agendamentos);
+                    if (dados.recebimentos) localStorage.setItem("tmcar_recebimentos", dados.recebimentos);
+                    if (dados.registrosAnalise) localStorage.setItem("tmcar_registros_servicos", dados.registrosAnalise);
+                    if (dados.config) localStorage.setItem("tmcar_config", dados.config);
+                    if (dados.configAnalise) localStorage.setItem("tmcar_config_analise", dados.configAnalise);
+                    if (dados.tema) localStorage.setItem("tmcar_theme", dados.tema);
+                    
+                    localStorage.setItem("tmcar_ultimo_backup", new Date().toISOString());
+                    
+                    mostrarSnackbar("✅ Backup restaurado! Recarregando...");
+                    setTimeout(() => location.reload(), 1500);
+                } catch(err) {
+                    alert("❌ Erro ao ler arquivo:\n" + err.message);
+                    mostrarSnackbar("❌ Erro: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+    }
+
+    function atualizarInfoBackup() {
+        const ultimo = localStorage.getItem("tmcar_ultimo_backup");
+        if (ultimo) {
+            const data = new Date(ultimo);
+            document.getElementById('ultimoBackup').innerText = data.toLocaleDateString() + ' às ' + data.toLocaleTimeString();
+        } else {
+            document.getElementById('ultimoBackup').innerText = 'Nunca feito';
+        }
+    }
+
+    // ========== CONFIGURAÇÕES E TEMA ==========
+    let CONFIG = { nomeEmpresa: "TM CAR", responsavel: "Artur dos Santos Domiciano", cnpj: "52.928.849/0001-23", chavePix: "52.928.849/0001-23", endereco: "Rua Lincoln N 35, Jardim Revista, Suzano" };
+    function carregarConfig() { const saved = localStorage.getItem("tmcar_config"); if(saved) CONFIG = JSON.parse(saved); document.getElementById('logoPrincipal').innerText = CONFIG.nomeEmpresa; document.getElementById('logoSub').innerText = CONFIG.responsavel; }
+    function salvarConfiguracoes() { CONFIG.nomeEmpresa = document.getElementById('configNomeEmpresa').value.trim() || "TM CAR"; CONFIG.responsavel = document.getElementById('configResponsavel').value.trim() || "Artur dos Santos Domiciano"; CONFIG.cnpj = document.getElementById('configCnpj').value.trim() || ""; CONFIG.chavePix = document.getElementById('configChavePix').value.trim() || ""; CONFIG.endereco = document.getElementById('configEndereco').value.trim() || ""; localStorage.setItem("tmcar_config", JSON.stringify(CONFIG)); document.getElementById('logoPrincipal').innerText = CONFIG.nomeEmpresa; document.getElementById('logoSub').innerText = CONFIG.responsavel; mostrarSnackbar('Configurações salvas!'); fecharModal('modalConfig'); }
+    function abrirConfiguracoes() { document.getElementById('configNomeEmpresa').value = CONFIG.nomeEmpresa; document.getElementById('configResponsavel').value = CONFIG.responsavel; document.getElementById('configCnpj').value = CONFIG.cnpj; document.getElementById('configChavePix').value = CONFIG.chavePix; document.getElementById('configEndereco').value = CONFIG.endereco; atualizarInfoBackup(); document.getElementById('modalConfig').classList.add('active'); }
+    function toggleTheme() { if(document.body.classList.contains('dark-theme')){ document.body.classList.remove('dark-theme'); localStorage.setItem('tmcar_theme', 'light'); } else { document.body.classList.add('dark-theme'); localStorage.setItem('tmcar_theme', 'dark'); } if(document.getElementById('pageDashboard').classList.contains('active')) renderizarDashboard(); }
+    function carregarTema() { const theme = localStorage.getItem('tmcar_theme'); if(theme === 'dark') document.body.classList.add('dark-theme'); }
+
+    // ========== LISTA DE SERVIÇOS ==========
+    const servicosCompletos = [
+        { nome: "Lavagem Tradicional", descricao: "Pré-lavagem e lavagem com shampoo. Limpeza das caixas de roda e pneus. Limpeza de painel e console com produto bactericida. Revitalização de plásticos internos. Aspiração interna. Limpeza dos vidros. Aplicação de pretinho nos pneus." },
+        { nome: "Ducha", descricao: "Lavagem com shampoo. Secagem do veículo. Aplicação de pretinho nos pneus." },
+        { nome: "Lavagem de Moto", descricao: "Pré-lavagem e lavagem com shampoo. Limpeza de motor, caixas de roda e pneus. Secagem completa. Lubrificação da corrente. Aplicação de pretinho nos pneus." },
+        { nome: "Lavagem com Cera", descricao: "Pré-lavagem e lavagem com shampoo. Limpeza das caixas de roda e pneus. Aplicação de cera líquida ou coating cerâmico. Limpeza de painel e console com produto bactericida. Revitalização de plásticos internos. Aspiração interna. Limpeza dos vidros. Aplicação de selante nos pneus." },
+        { nome: "Lavagem Detalhada (Carro)", descricao: "Pré-lavagem e lavagem com shampoo. Limpeza das caixas de roda e pneus. Limpeza detalhada de painel, console, trilhos, cantos, emblemas, frisos e porta-malas. Revitalização de plásticos internos. Aspiração completa. Limpeza dos vidros. Aplicação de selante nos pneus." },
+        { nome: "Lavagem Detalhada de Moto", descricao: "Desmontagem parcial da carenagem. Pré-lavagem e lavagem com shampoo. Descontaminação de rodas e limpeza técnica do motor. Aplicação de cera líquida ou coating cerâmico. Revitalização de plásticos. Secagem completa. Lubrificação da corrente. Aplicação de selante nos pneus." },
+        { nome: "Lavagem de Caminhão e Polimento", descricao: "Pré-lavagem e lavagem com shampoo, limpeza das caixas de roda e pneus. Lavagem completa do chassi. Descontaminação da pintura. Polimento técnico. Aplicação de cera líquida ou coating cerâmico. Aplicação de pretinho nos pneus." },
+        { nome: "Correção e Proteção de Pintura", descricao: "Pré-lavagem e lavagem com shampoo específico. Descontaminação da pintura com clay bar. Polimento técnico (corte e refino). Aplicação de coating cerâmico. Revitalização completa da pintura. Limpeza de painel e console com produto bactericida. Aspiração interna. Limpeza dos vidros. Aplicação de selante nos pneus." },
+        { nome: "Higienização Premium", descricao: "Inclui todos os processos da lavagem detalhada. Desmontagem de bancos e console para acesso completo ao carpete. Higienização profunda de carpete, bancos, teto, cintos e laterais. Extração de sujeiras impregnadas com ação bactericida. Revitalização de plásticos internos. Aspiração completa. Limpeza dos vidros. Aplicação de selante nos pneus." },
+        { nome: "Limpeza e Hidratação do Couro", descricao: "Limpeza profunda e hidratação de bancos de couro. Revitalização e proteção contra ressecamento e rachaduras." },
+        { nome: "Limpeza Técnica do Motor", descricao: "Higienização completa do motor com proteção contra oxidação e umidade." },
+        { nome: "Manutenção de Vitrificador", descricao: "Reaplicação de coating cerâmico para proteção da pintura. Manutenção e revitalização do vitrificador existente." },
+        { nome: "Pacote Completo Premium", descricao: "Inclui todos os processos da higienização premium e lavagem detalhada. Desmontagem parcial para higienização completa interna. Descontaminação da pintura. Polimento técnico (correção leve). Aplicação de coating cerâmico. Higienização completa de bancos, carpete, teto e laterais. Revitalização de plásticos internos e externos. Hidratação de couro (quando aplicável). Limpeza técnica do motor com proteção. Aspiração geral. Limpeza dos vidros. Aplicação de selante nos pneus." },
+        { nome: "Pintura Automotiva", descricao: "Preparação das peças, lixamento, correção de imperfeições, aplicação de primer, tinta e verniz." },
+        { nome: "Restauração de Couro", descricao: "Restauração de bancos em couro com correção de desgastes e revitalização da cor. Inclui limpeza técnica e recuperação do acabamento interno em couro." },
+        { nome: "Revitalização de Farol", descricao: "Polimento e recuperação da transparência dos faróis. Remoção de oxidação e resíduos." },
+        { nome: "Revitalização de Plásticos", descricao: "Revitalização e proteção dos plásticos internos e externos do veículo." },
+        { nome: "Tapeçaria", descricao: "Teto: Remoção do revestimento antigo, preparação da superfície e instalação de novo tecido. Forro de porta: Substituição do revestimento do forro de porta, com aplicação de novo tecido e acabamento para renovação da estética interna do veículo." }
+    ];
+
+    const iconesServicos = {
+        'LAVAGEM TRADICIONAL': '🚗', 'DUCHA': '🧼', 'LAVAGEM DE MOTO': '🏍️', 'LAVAGEM COM CERA': '✨',
+        'LAVAGEM DETALHADA (CARRO)': '🔍', 'LAVAGEM DETALHADA DE MOTO': '🏍️✨',
+        'LAVAGEM DE CAMINHÃO E POLIMENTO': '🚛✨', 'CORREÇÃO E PROTEÇÃO DE PINTURA': '🛡️',
+        'HIGIENIZAÇÃO PREMIUM': '🧹', 'LIMPEZA E HIDRATAÇÃO DO COURO': '🧴',
+        'LIMPEZA TÉCNICA DO MOTOR': '🔧', 'MANUTENÇÃO DE VITRIFICADOR': '✨',
+        'PACOTE COMPLETO PREMIUM': '💎', 'PINTURA AUTOMOTIVA': '🎨',
+        'RESTAURAÇÃO DE COURO': '🧵', 'REVITALIZAÇÃO DE FAROL': '💡',
+        'REVITALIZAÇÃO DE PLÁSTICOS': '🔄', 'TAPEÇARIA': '🪑'
+    };
+
+    function getIcone(nome) { 
+        const upper = (nome || '').toUpperCase(); 
+        for (let [key, icon] of Object.entries(iconesServicos)) { 
+            if (upper.includes(key) || key === upper) return icon; 
+        } 
+        return '🔧'; 
+    }
+    
+    function obterDescricaoServico(nome) { 
+        const encontrado = servicosCompletos.find(s => s.nome.toLowerCase() === nome.toLowerCase()); 
+        return encontrado ? encontrado.descricao : `Serviço de ${nome} - Inclui mão de obra especializada.`; 
+    }
+    
+    function popularSelectsServicos() { 
+        const options = servicosCompletos.map(s => `<option value="${s.nome}">${getIcone(s.nome)} ${s.nome}</option>`).join(''); 
+        ['tipoServico', 'agendaTipoServico', 'analiseServicoSelect'].forEach(id => { 
+            const sel = document.getElementById(id); 
+            if (sel) sel.innerHTML = options; 
+        }); 
+    }
+
+    // ========== DADOS GLOBAIS ==========
+    let clientes = [], contas = [], orcamentos = [], agendamentos = [];
+    let veiculosTemp = [], clienteEditandoId = null, itensOrcamentoTemp = [], currentPagarClienteId = null;
+    function opcoesServicosHTML() { return servicosCompletos.map(s => `<option value="${s.nome}">${getIcone(s.nome)} ${s.nome}</option>`).join(''); }
+
+    function inicializarDados() {
+        clientes = JSON.parse(localStorage.getItem("tmcar_clientes_final") || "[]");
+        if (!clientes.length) clientes = [{ id: 1, nome: "Artur", telefone: "11916413334", veiculos: [{id:10, tipo:"Carro", modelo:"Siena"}], servicos: [] }];
+        contas = JSON.parse(localStorage.getItem("tmcar_contas") || "[]");
+        orcamentos = JSON.parse(localStorage.getItem("tmcar_orcamentos") || "[]");
+        agendamentos = JSON.parse(localStorage.getItem("tmcar_agendamentos") || "[]");
+        let migrado = false;
+        contas = contas.map(c => { if (!c.tipo) { c.tipo = 'despesa'; migrado = true; } return c; });
+        if (migrado) localStorage.setItem("tmcar_contas", JSON.stringify(contas));
+    }
+    function salvarContas() { localStorage.setItem("tmcar_contas", JSON.stringify(contas)); }
+
+    // ========== CONTAS ==========
+    function atualizarInfoGrupo() { const selectCat = document.getElementById('contaCategoria'); const grupoInfo = document.getElementById('grupoInfo'); if (!selectCat || !grupoInfo) return; const valorSelecionado = selectCat.value; const categoriasCusto = ['💧 Água', '💡 Luz', '📦 Produtos', '🧴 Material de limpeza', '🔧 Ferramentas']; grupoInfo.innerHTML = categoriasCusto.includes(valorSelecionado) ? '💰 CUSTO (gasto direto dos serviços)' : '📄 DESPESA (manutenção da empresa)'; }
+    function obterTipoPorCategoria(categoria) { const categoriasCusto = ['💧 Água', '💡 Luz', '📦 Produtos', '🧴 Material de limpeza', '🔧 Ferramentas']; return categoriasCusto.includes(categoria) ? 'custo' : 'despesa'; }
+    function adicionarConta() { let cat = document.getElementById('contaCategoria').value; let tipo = obterTipoPorCategoria(cat); let valor = parseFloatBrasil(document.getElementById('contaValor').value); let obs = document.getElementById('contaObs').value; if(isNaN(valor) || valor<=0) { mostrarSnackbar('Valor inválido'); return; } contas.push({ id: gerarIdUnico(), tipo, categoria: cat, valor, observacao: obs, data: new Date().toISOString() }); salvarContas(); mostrarSnackbar('Lançamento adicionado'); renderizarContas(); renderizarDashboard(); document.getElementById('contaValor').value = ''; document.getElementById('contaObs').value = ''; }
+    function excluirConta(id) { if(confirm('Excluir?')){ contas=contas.filter(c=>c.id!=id); salvarContas(); renderizarContas(); renderizarDashboard(); } }
+    function renderizarContas() { const hoje = new Date(), mes = hoje.getMonth(), ano = hoje.getFullYear(); let lancamentosMes = contas.filter(c => { let d=new Date(c.data); return d.getMonth()===mes && d.getFullYear()===ano; }); let total = lancamentosMes.reduce((s,l)=>s+l.valor,0); let dias = new Date(ano, mes+1, 0).getDate(); document.getElementById('totalDespesasMes').innerText = formatarMoeda(total); document.getElementById('mediaDiaria').innerText = formatarMoeda(total/dias); let despesas = lancamentosMes.filter(l => l.tipo === 'despesa'); let custos = lancamentosMes.filter(l => l.tipo === 'custo'); document.getElementById('listaDespesas').innerHTML = despesas.map(c => `<div class="transacao-item"><div><strong>${c.categoria}</strong><br>${c.observacao||''}<br><small>${new Date(c.data).toLocaleDateString()}</small></div><div>${formatarMoeda(c.valor)}</div><button class="btn-delete" onclick="excluirConta(${c.id})">🗑️</button></div>`).join('') || '<div class="empty-state">Nenhuma despesa este mês</div>'; document.getElementById('listaCustos').innerHTML = custos.map(c => `<div class="transacao-item"><div><strong>${c.categoria}</strong><br>${c.observacao||''}<br><small>${new Date(c.data).toLocaleDateString()}</small></div><div>${formatarMoeda(c.valor)}</div><button class="btn-delete" onclick="excluirConta(${c.id})">🗑️</button></div>`).join('') || '<div class="empty-state">Nenhum custo este mês</div>'; }
+
+    // ========== SERVIÇOS E CLIENTES ==========
+    function salvarServicoRapido() { 
+        let nome = document.getElementById('novoServicoNome').value.trim(); 
+        let tipo = document.getElementById('tipoServico').value; 
+        let valorStr = document.getElementById('novoServicoValorRapido').value;
+        let valor = parseFloatBrasil(valorStr);
+        
+        if(!nome || !tipo || isNaN(valor) || valor<=0) { 
+            mostrarSnackbar('Preencha cliente, serviço e valor'); 
+            return; 
+        }
+        
+        let cliente = clientes.find(c => c.nome === nome); 
+        if(!cliente) { 
+            cliente = { id: gerarIdUnico(), nome, telefone: '', veiculos: [], servicos: [] }; 
+            clientes.push(cliente); 
+        } 
+        if(!cliente.servicos) cliente.servicos = []; 
+        
+        let veiculoId = document.getElementById('veiculoSelecionadoServico').value;
+        let veiculoNome = 'Sem veículo';
+        let veiculoInfo = null;
+        
+        if (veiculoId && cliente.veiculos) { 
+            let veiculo = cliente.veiculos.find(v => v.id == veiculoId); 
+            if (veiculo) {
+                veiculoNome = `${veiculo.tipo} ${veiculo.modelo}`;
+                veiculoInfo = veiculo;
+            }
+        }
+        
+        cliente.servicos.push({ 
+            id: gerarIdUnico(), 
+            tipo, 
+            valor, 
+            data: new Date().toISOString(), 
+            pago: false, 
+            veiculoNome: veiculoNome,
+            veiculoId: veiculoId || null,
+            veiculoInfo: veiculoInfo,
+            valorPago: 0 
+        }); 
+        
+        localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes)); 
+        mostrarSnackbar('✅ Serviço adicionado ao veículo: ' + veiculoNome); 
+        renderizarHistorico(); 
+        renderizarDashboard(); 
+        renderizarFinanceiro(); 
+        atualizarDatalists(); 
+        document.getElementById('novoServicoValorRapido').value = '';
+    }
+    
+    function renderizarHistorico() { 
+        let todos = []; 
+        clientes.forEach(c => { 
+            if(c.servicos) c.servicos.forEach(s => { 
+                let saldo = (s.valor || 0) - (s.valorPago || 0); 
+                let veiculoInfo = s.veiculoNome && s.veiculoNome !== 'Sem veículo' ? ` (${s.veiculoNome})` : '';
+                todos.push({...s, clienteNome: c.nome, saldoPendente: saldo, veiculoInfo: veiculoInfo}); 
+            }); 
+        }); 
+        todos.sort((a,b)=>new Date(b.data)-new Date(a.data)); 
+        document.getElementById('historicoServicos').innerHTML = todos.map(s => { 
+            let saldo = s.saldoPendente || 0; 
+            return `<div class="transacao-item">
+                <div>
+                    <strong>${s.clienteNome}</strong>
+                    ${s.veiculoInfo ? `<br><span class="veiculo-tag">🚗 ${s.veiculoInfo}</span>` : ''}
+                    <br>${getIcone(s.tipo)} ${s.tipo}<br>
+                    <small>${new Date(s.data).toLocaleDateString()}</small><br>
+                    ${saldo > 0 ? `<span class="badge pendente">Saldo: ${formatarMoeda(saldo)}</span>` : `<span class="badge pago">✅ Pago</span>`}
+                    <br><span style="font-size:12px; color:#666;">Total: ${formatarMoeda(s.valor)}</span>
+                </div>
+                <div style="text-align:right;">
+                    <strong>${formatarMoeda(s.valor)}</strong>
+                </div>
+            </div>`; 
+        }).join('') || '<div class="empty-state">Nenhum serviço</div>'; 
+    }
+    
+    function renderizarListaClientesCadastro() { let filtro = document.getElementById('buscaCliente').value.toLowerCase(); let lista = clientes.filter(c=>c.nome.toLowerCase().includes(filtro)); document.getElementById('listaClientesCadastro').innerHTML = lista.map(c=>`<div class="transacao-item"><div><strong>${c.nome}</strong><br>📞 ${c.telefone||'---'}</div><div><button class="btn-edit" onclick="editarCliente(${c.id})">✏️</button><button class="btn-delete" onclick="excluirCliente(${c.id})">🗑️</button><button class="btn-edit" onclick="verDetalhesCliente(${c.id})">👁️</button></div></div>`).join(''); }
+    function cadastrarClienteCompleto() { let nome = document.getElementById('cadastroNome').value.trim(); let telefone = document.getElementById('cadastroTelefone').value.trim(); if(!nome){ mostrarSnackbar('Nome obrigatório'); return; } if(clienteEditandoId){ let c = clientes.find(c=>c.id==clienteEditandoId); if(c){ c.nome=nome; c.telefone=telefone; c.veiculos=veiculosTemp; localStorage.setItem("tmcar_clientes_final",JSON.stringify(clientes)); mostrarSnackbar('Atualizado'); } clienteEditandoId=null; } else { clientes.push({ id: gerarIdUnico(), nome, telefone, veiculos: veiculosTemp, servicos: [] }); localStorage.setItem("tmcar_clientes_final",JSON.stringify(clientes)); mostrarSnackbar('Cliente adicionado'); } limparFormCliente(); renderizarListaClientesCadastro(); renderizarFinanceiro(); atualizarDatalists(); }
+    function editarCliente(id) { let c=clientes.find(c=>c.id==id); if(c){ clienteEditandoId=id; document.getElementById('cadastroNome').value=c.nome; document.getElementById('cadastroTelefone').value=c.telefone||''; veiculosTemp=[...c.veiculos]; renderizarListaVeiculosTemp(); document.getElementById('btnSalvarCliente').innerText='✏️ ATUALIZAR'; document.getElementById('btnCancelarEdicao').style.display='block'; document.getElementById('formTitulo').innerText='✏️ Editar Cliente'; } }
+    function cancelarEdicao() { limparFormCliente(); clienteEditandoId=null; veiculosTemp=[]; renderizarListaVeiculosTemp(); document.getElementById('btnSalvarCliente').innerText='✅ CADASTRAR CLIENTE'; document.getElementById('btnCancelarEdicao').style.display='none'; document.getElementById('formTitulo').innerText='➕ Adicionar Cliente'; }
+    function limparFormCliente() { document.getElementById('cadastroNome').value=''; document.getElementById('cadastroTelefone').value=''; veiculosTemp=[]; renderizarListaVeiculosTemp(); }
+    function excluirCliente(id) { if(confirm('Excluir cliente?')){ clientes=clientes.filter(c=>c.id!=id); localStorage.setItem("tmcar_clientes_final",JSON.stringify(clientes)); renderizarListaClientesCadastro(); renderizarFinanceiro(); atualizarDatalists(); mostrarSnackbar('Removido'); } }
+    
+    function verDetalhesCliente(id) { 
+        let c = clientes.find(c => c.id == id); 
+        if(c){
+            let veiculosComServicos = {};
+            (c.servicos || []).forEach(s => {
+                if (s.veiculoNome && s.veiculoNome !== 'Sem veículo') {
+                    veiculosComServicos[s.veiculoNome] = true;
+                }
+            });
+            
+            let veiculosHtml = '';
+            if (Object.keys(veiculosComServicos).length > 0) {
+                veiculosHtml = '🚗 ' + Object.keys(veiculosComServicos).join(', ');
+            } else if (c.veiculos && c.veiculos.length > 0) {
+                veiculosHtml = '🚗 ' + c.veiculos.map(v => `${v.tipo} ${v.modelo}`).join(', ');
+            }
+            
+            document.getElementById('modalClienteNome').innerText = c.nome;
+            document.getElementById('modalClienteDetalhes').innerHTML = `
+                ${veiculosHtml ? `<div>${veiculosHtml}</div>` : ''}
+                <div style="margin-top:12px;"><strong>Serviços:</strong><br>
+                ${(c.servicos || []).map(s => {
+                    let veiculoInfo = s.veiculoNome && s.veiculoNome !== 'Sem veículo' ? ` (${s.veiculoNome})` : '';
+                    let saldo = (s.valor || 0) - (s.valorPago || 0);
+                    return `${getIcone(s.tipo)} ${s.tipo}${veiculoInfo} - ${formatarMoeda(s.valor)} ${saldo <= 0 ? '✅ Pago' : `⏳ Saldo: ${formatarMoeda(saldo)}`}`;
+                }).join('<br>') || 'Nenhum serviço'}</div>
+            `;
+            window.clienteModalAtual = c;
+            document.getElementById('modalDetalhesCliente').classList.add('active');
+        }
+    }
+    
+    function enviarFaturaWhatsApp() { 
+        let c = window.clienteModalAtual; 
+        if (!c) return; 
+        let telefone = (c.telefone || '').replace(/\D/g, ''); 
+        if (!telefone) { mostrarSnackbar('WhatsApp inválido'); return; } 
+        let pendentes = (c.servicos||[]).filter(s => { let saldo = (s.valor||0) - (s.valorPago||0); return saldo > 0; }); 
+        if(pendentes.length===0) { mostrarSnackbar('Nenhum serviço pendente'); return; } 
+        let lista = pendentes.map(s => { 
+            let saldo = (s.valor||0) - (s.valorPago||0); 
+            let veiculoInfo = s.veiculoNome && s.veiculoNome !== 'Sem veículo' ? ` (${s.veiculoNome})` : ''; 
+            return `- ${getIcone(s.tipo)} ${s.tipo}${veiculoInfo}: ${formatarMoeda(saldo)}`; 
+        }).join('\n'); 
+        let total = pendentes.reduce((s,sv)=>{ let saldo = (sv.valor||0) - (sv.valorPago||0); return s + saldo; },0); 
+        let msg = `🏢 *${CONFIG.nomeEmpresa}* - ${CONFIG.responsavel}\n📄 *FATURA PENDENTE*\n\n👤 Cliente: *${c.nome}*\n📞 Telefone: ${c.telefone}\n\n📋 *Serviços com saldo pendente:*\n${lista}\n\n💰 *Total a pagar:* ${formatarMoeda(total)}\n\n📍 Endereço: ${CONFIG.endereco}\n💳 Pix: ${CONFIG.chavePix}\n\n✅ *Pagamento via Pix*\n_Obrigado pela preferência!_`; 
+        window.location.href = `https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}`; 
+    }
+    
+    // ========== FINANCEIRO ==========
+    function renderizarFinanceiro() {
+        let html = clientes
+            .filter(c => (c.servicos || []).reduce((s, sv) => s + (sv.valor || 0), 0) > 0)
+            .map(c => {
+                let totalServicos = (c.servicos || []).reduce((s, sv) => s + (sv.valor || 0), 0);
+                let totalPago = (c.servicos || []).reduce((s, sv) => s + (sv.valorPago || 0), 0);
+                let pendente = totalServicos - totalPago;
+                let temPendente = pendente > 0.01;
+                
+                return `<div class="transacao-item">
+                    <div>
+                        <strong>${c.nome}</strong><br>
+                        💰 Total: ${formatarMoeda(totalServicos)}<br>
+                        ✅ Pago: ${formatarMoeda(totalPago)}
+                        ${temPendente ? `<br>⏳ Saldo: ${formatarMoeda(pendente)}` : ''}
+                        ${!temPendente ? `<br><span class="status-ok">✅ Conta quitada</span>` : ''}
+                    </div>
+                    <div class="flex-buttons">
+                        <button class="btn-edit" onclick="verDetalhesCliente(${c.id})">Detalhes</button>
+                        ${temPendente ? `<button class="btn-pago" onclick="abrirModalPagarCliente(${c.id})">💰 Pagar</button>` : ''}
+                        <button class="btn-delete" onclick="excluirCliente(${c.id})">🗑️</button>
+                    </div>
+                </div>`;
+            }).join('');
+        
+        document.getElementById('listaClientesFinanceiro').innerHTML = html || '<div class="empty-state">Nenhum cliente com serviços</div>';
+    }
+
+    // ========== MODAL DE PAGAMENTO (CAMPO VEM COM SALDO RESTANTE) ==========
+    function abrirModalPagarCliente(clienteId) {
+        let cliente = clientes.find(c => c.id == clienteId);
+        if (!cliente) return;
+        
+        let pendentes = (cliente.servicos || []).filter(s => ((s.valor || 0) - (s.valorPago || 0)) > 0);
+        
+        if (pendentes.length === 0) {
+            mostrarSnackbar('Sem serviços pendentes');
+            return;
+        }
+        
+        currentPagarClienteId = clienteId;
+        
+        let html = pendentes.map(s => {
+            let saldoDevido = (s.valor || 0) - (s.valorPago || 0);
+            let jaPago = s.valorPago || 0;
+            let veiculoInfo = s.veiculoNome && s.veiculoNome !== 'Sem veículo' ? ` (${s.veiculoNome})` : '';
+            return `
+                <div class="pagamento-item">
+                    <div class="pagamento-titulo">
+                        <span>${getIcone(s.tipo)} ${s.tipo}${veiculoInfo}</span>
+                        <div style="display:flex; gap:4px;">
+                            <button class="btn-delete" onclick="editarServicoLancado(${cliente.id}, ${s.id})" style="padding:4px; color:#2196F3;" title="Editar valor">✏️</button>
+                            <button class="btn-delete" onclick="excluirServicoPendente(${cliente.id}, ${s.id})" style="padding:4px;" title="Excluir">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="pagamento-data">📅 ${new Date(s.data).toLocaleDateString()}</div>
+                    <div class="pagamento-total">
+                        Total: <strong>${formatarMoeda(s.valor)}</strong>
+                        ${jaPago > 0 ? ` • Já pago: <strong style="color:#4CAF50;">${formatarMoeda(jaPago)}</strong>` : ''}
+                        ${jaPago > 0 ? `<br>⏳ <strong style="color:#ff9800;">Falta pagar: ${formatarMoeda(saldoDevido)}</strong>` : ''}
+                    </div>
+                    <div class="pagamento-campo">
+                        <input type="text" id="valor_pagar_${s.id}" placeholder="Valor a pagar" 
+                               value="${saldoDevido.toFixed(2).replace('.', ',')}" 
+                               oninput="formatarValorEntrada(this); atualizarSaldoPendente(${s.id}, ${s.valor}, ${jaPago})"
+                               onfocus="this.select()">
+                        <button onclick="pagarParcial(${cliente.id}, ${s.id})">Pagar</button>
+                    </div>
+                    <div id="saldo_pendente_${s.id}" class="pagamento-saldo"></div>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('listaServicosPendentes').innerHTML = html;
+        document.getElementById('modalPagarCliente').classList.add('active');
+    }
+
+    // ========== EDITAR SERVIÇO LANÇADO ==========
+    function editarServicoLancado(clienteId, servicoId) {
+        let cliente = clientes.find(c => c.id == clienteId);
+        if (!cliente) return;
+        
+        let servico = cliente.servicos.find(s => s.id == servicoId);
+        if (!servico) return;
+        
+        let novoValor = prompt(
+            `✏️ Editar valor do serviço:\n\n${getIcone(servico.tipo)} ${servico.tipo}\n\nValor atual: ${formatarMoeda(servico.valor)}\nJá pago: ${formatarMoeda(servico.valorPago || 0)}\n\nDigite o novo valor total (ex: 100,00):`,
+            servico.valor.toFixed(2).replace('.', ',')
+        );
+        
+        if (novoValor === null) return;
+        
+        let valorNumerico = parseFloatBrasil(novoValor);
+        
+        if (isNaN(valorNumerico) || valorNumerico <= 0) {
+            mostrarSnackbar('❌ Valor inválido!');
+            return;
+        }
+        
+        if (valorNumerico < (servico.valorPago || 0)) {
+            mostrarSnackbar(`❌ Valor não pode ser menor que o já pago (${formatarMoeda(servico.valorPago || 0)})`);
+            return;
+        }
+        
+        let valorAntigo = servico.valor;
+        servico.valor = valorNumerico;
+        
+        if (servico.valorPago >= servico.valor) {
+            servico.pago = true;
+        } else {
+            servico.pago = false;
+        }
+        
+        localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes));
+        
+        mostrarSnackbar(`✅ Valor alterado: ${formatarMoeda(valorAntigo)} → ${formatarMoeda(valorNumerico)}`);
+        
+        renderizarFinanceiro();
+        renderizarDashboard();
+        renderizarHistorico();
+        
+        setTimeout(() => abrirModalPagarCliente(clienteId), 100);
+    }
+
+    function atualizarSaldoPendente(servicoId, valorTotal, jaPago) {
+        let input = document.getElementById(`valor_pagar_${servicoId}`);
+        let divSaldo = document.getElementById(`saldo_pendente_${servicoId}`);
+        
+        if (!input || !divSaldo) return;
+        
+        if (!input.value.trim()) {
+            divSaldo.className = 'pagamento-saldo';
+            divSaldo.style.display = 'none';
+            return;
+        }
+        
+        let valorDigitado = parseFloatBrasil(input.value);
+        let totalJaPago = (jaPago || 0) + (valorDigitado || 0);
+        let saldoRestante = valorTotal - totalJaPago;
+        
+        if (saldoRestante > 0.01) {
+            divSaldo.textContent = `⏳ Falta pagar: ${formatarMoeda(saldoRestante)}`;
+            divSaldo.className = 'pagamento-saldo pendente';
+        } else if (saldoRestante <= 0.01 && valorDigitado > 0) {
+            divSaldo.textContent = `✅ Quitação total`;
+            divSaldo.className = 'pagamento-saldo quitado';
+        } else {
+            divSaldo.className = 'pagamento-saldo';
+            divSaldo.style.display = 'none';
+        }
+    }
+
+    function excluirServicoPendente(clienteId, servicoId) {
+        if (!confirm('⚠️ Excluir este serviço?')) return;
+        
+        let cliente = clientes.find(c => c.id == clienteId);
+        if (!cliente) return;
+        
+        cliente.servicos = cliente.servicos.filter(s => s.id != servicoId);
+        localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes));
+        
+        fecharModal('modalPagarCliente');
+        renderizarFinanceiro();
+        renderizarDashboard();
+        renderizarHistorico();
+        
+        mostrarSnackbar('🗑️ Serviço excluído!');
+    }
+
+    function pagarParcial(clienteId, servicoId) {
+        let cliente = clientes.find(c => c.id == clienteId);
+        if (!cliente) return;
+        
+        let servico = cliente.servicos.find(s => s.id == servicoId);
+        if (!servico) return;
+        
+        let valorInput = document.getElementById(`valor_pagar_${servicoId}`);
+        let valorPagamento = parseFloatBrasil(valorInput.value);
+        
+        if (isNaN(valorPagamento) || valorPagamento <= 0) {
+            mostrarSnackbar('Valor inválido');
+            return;
+        }
+        
+        let saldoAtual = (servico.valor || 0) - (servico.valorPago || 0);
+        if (valorPagamento > saldoAtual) {
+            mostrarSnackbar(`Excede saldo (${formatarMoeda(saldoAtual)})`);
+            return;
+        }
+        
+        servico.valorPago = (servico.valorPago || 0) + valorPagamento;
+        if (servico.valorPago >= servico.valor) servico.pago = true;
+        
+        localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes));
+        
+        let recebimentos = JSON.parse(localStorage.getItem("tmcar_recebimentos") || "[]");
+        recebimentos.push({
+            id: gerarIdUnico(),
+            cliente: cliente.nome,
+            servico: servico.tipo,
+            valor: valorPagamento,
+            dataPagamento: new Date().toISOString()
+        });
+        localStorage.setItem("tmcar_recebimentos", JSON.stringify(recebimentos));
+        
+        mostrarSnackbar(`✅ Recebido ${formatarMoeda(valorPagamento)}`);
+        
+        renderizarFinanceiro();
+        renderizarDashboard();
+        renderizarHistorico();
+        
+        setTimeout(() => abrirModalPagarCliente(clienteId), 100);
+    }
+
+    // ========== DASHBOARD ==========
+    let currentChart, evolutionChart;
+
+    function getDadosDoMes(ano, mes) {
+        let recebimentos = JSON.parse(localStorage.getItem("tmcar_recebimentos") || "[]");
+        let servicos = [];
+        
+        clientes.forEach(c => {
+            if (c.servicos) {
+                c.servicos.forEach(s => {
+                    if (!s.tipo) return;
+                    let valorPago = s.valorPago || 0;
+                    let saldoDevedor = (s.valor || 0) - valorPago;
+                    servicos.push({...s, clienteNome: c.nome, valorPago, saldoDevedor});
+                });
+            }
+        });
+        
+        let receitasDoMes = recebimentos.filter(r => {
+            let d = new Date(r.dataPagamento);
+            return d.getFullYear() === ano && d.getMonth() === mes;
+        });
+        
+        let totalReceita = receitasDoMes.reduce((acc, r) => acc + r.valor, 0);
+        let totalEmAberto = servicos.reduce((acc, s) => acc + s.saldoDevedor, 0);
+        let totalServicos = servicos.length;
+        let ticketMedio = receitasDoMes.length ? totalReceita / receitasDoMes.length : 0;
+        
+        let agrupados = {};
+        receitasDoMes.forEach(r => {
+            if (!agrupados[r.servico]) agrupados[r.servico] = { qtd: 0, receita: 0 };
+            agrupados[r.servico].qtd++;
+            agrupados[r.servico].receita += r.valor;
+        });
+        
+        let servicosArray = Object.keys(agrupados).map(tipo => ({
+            nome: tipo,
+            qtd: agrupados[tipo].qtd,
+            receita: agrupados[tipo].receita
+        }));
+        servicosArray.sort((a, b) => b.receita - a.receita);
+        
+        return { totalReceita, totalEmAberto, totalServicos, ticketMedio, servicos: servicosArray };
+    }
+
+    function renderizarDashboard() {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = hoje.getMonth();
+        const dados = getDadosDoMes(ano, mes);
+        
+        document.getElementById('cardsContainer').innerHTML = `
+            <div class="card-modern card-receita">
+                <div>💰 RECEITA (MÊS)</div>
+                <div class="card-value">${formatarMoeda(dados.totalReceita)}</div>
+            </div>
+            <div class="card-modern card-despesa">
+                <div>⏳ EM ABERTO</div>
+                <div class="card-value">${formatarMoeda(dados.totalEmAberto)}</div>
+            </div>
+            <div class="card-modern card-outro">
+                <div>🛠️ SERVIÇOS</div>
+                <div class="card-value">${dados.totalServicos}</div>
+            </div>
+            <div class="card-modern card-outro">
+                <div>🎫 TICKET MÉDIO</div>
+                <div class="card-value">${formatarMoeda(dados.ticketMedio)}</div>
+            </div>
+        `;
+        
+        if(currentChart) currentChart.destroy();
+        const ctx = document.getElementById('servicesChart').getContext('2d');
+        currentChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: dados.servicos.map(s=>s.nome),
+                datasets: [{ 
+                    data: dados.servicos.map(s=>s.receita), 
+                    backgroundColor: ['#3B82F6','#22C55E','#A855F7','#F97316','#EF4444','#FACC15','#06B6D4','#EC4899'],
+                    borderWidth: 0 
+                }]
+            },
+            options: { responsive: true }
+        });
+        
+        if(evolutionChart) evolutionChart.destroy();
+        const evoCtx = document.getElementById('evolutionChart').getContext('2d');
+        const mesesLabels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const receitasMeses = mesesLabels.map((_, i) => getDadosDoMes(ano, i).totalReceita);
+        evolutionChart = new Chart(evoCtx, {
+            type: 'line',
+            data: {
+                labels: mesesLabels,
+                datasets: [{ label: 'Receita (R$)', data: receitasMeses, borderColor: '#3B82F6' }]
+            }
+        });
+        
+        let lancamentosMes = contas.filter(c => {
+            let d = new Date(c.data);
+            return d.getMonth() === mes && d.getFullYear() === ano;
+        });
+        let totalDespesas = lancamentosMes.filter(l => l.tipo === 'despesa').reduce((s,l)=>s+l.valor,0);
+        let totalCustos = lancamentosMes.filter(l => l.tipo === 'custo').reduce((s,l)=>s+l.valor,0);
+        let lucro = dados.totalReceita - totalDespesas - totalCustos;
+        
+        document.getElementById('financasGrid').innerHTML = `
+            <div class="financa-card" style="background:#2E7D32;">
+                <div class="label">RECEITA</div>
+                <div class="value">${formatarMoeda(dados.totalReceita)}</div>
+            </div>
+            <div class="financa-card" style="background:#C62828;">
+                <div class="label">DESPESAS</div>
+                <div class="value">${formatarMoeda(totalDespesas)}</div>
+            </div>
+            <div class="financa-card" style="background:#F57C00;">
+                <div class="label">CUSTOS</div>
+                <div class="value">${formatarMoeda(totalCustos)}</div>
+            </div>
+            <div class="financa-card" style="background:${lucro>=0?'#1B5E20':'#B71C1C'};">
+                <div class="label">LUCRO</div>
+                <div class="value">${formatarMoeda(lucro)}</div>
+            </div>
+        `;
+        
+        document.getElementById('contasPagarLista').innerHTML = lancamentosMes.filter(l=>l.tipo==='despesa').map(l => `
+            <div class="transacao-item">
+                <div><strong>${l.categoria}</strong><br>📅 ${new Date(l.data).toLocaleDateString()}</div>
+                <div>${formatarMoeda(l.valor)}</div>
+            </div>
+        `).join('') || '<div class="empty-state">Nenhuma despesa</div>';
+        
+        document.getElementById('custosLista').innerHTML = lancamentosMes.filter(l=>l.tipo==='custo').map(l => `
+            <div class="transacao-item">
+                <div><strong>${l.categoria}</strong><br>📅 ${new Date(l.data).toLocaleDateString()}</div>
+                <div>${formatarMoeda(l.valor)}</div>
+            </div>
+        `).join('') || '<div class="empty-state">Nenhum custo</div>';
+        
+        let todosLancamentos = [];
+        clientes.forEach(c => {
+            if(c.servicos) c.servicos.forEach(s => {
+                if(s.tipo) todosLancamentos.push({ tipo: 'Receita', descricao: s.tipo, valor: s.valor, data: s.data, cliente: c.nome });
+            });
+        });
+        lancamentosMes.forEach(l => {
+            todosLancamentos.push({ tipo: l.tipo === 'despesa' ? 'Despesa' : 'Custo', descricao: l.categoria, valor: l.valor, data: l.data });
+        });
+        todosLancamentos.sort((a,b)=>new Date(b.data)-new Date(a.data));
+        
+        document.getElementById('ultimosLancamentos').innerHTML = todosLancamentos.slice(0,6).map(l => `
+            <div class="transacao-item">
+                <div><strong>${l.tipo === 'Receita' ? '📈' : '📉'} ${l.descricao}</strong><br>${l.cliente ? `Cliente: ${l.cliente}` : ''}<br>${new Date(l.data).toLocaleDateString()}</div>
+                <div>${formatarMoeda(l.valor)}</div>
+            </div>
+        `).join('') || '<div class="empty-state">Nenhum lançamento</div>';
+        
+        const proximos = agendamentos.filter(a => new Date(a.data) >= new Date()).sort((a,b)=>new Date(a.data)-new Date(b.data)).slice(0,4);
+        document.getElementById('agendaList').innerHTML = proximos.length ? proximos.map(a => {
+            let c = clientes.find(c=>c.id==a.clienteId);
+            return `<div class="transacao-item"><div><strong>${a.tipoServico}</strong><br>📅 ${new Date(a.data).toLocaleDateString()} ${a.hora}<br>👤 ${c?c.nome:'Cliente'}</div></div>`;
+        }).join('') : '<div class="empty-state">Nenhum agendamento futuro</div>';
+    }
+
+    // ========== ORÇAMENTOS ==========
+    function adicionarItemOrcamento() { itensOrcamentoTemp.push({ id: gerarIdUnico(), servico: 'Lavagem Tradicional', valor: 0, descricao: obterDescricaoServico('Lavagem Tradicional') }); renderizarItensOrcamento(); }
+    function renderizarItensOrcamento() { const div = document.getElementById('listaItensOrcamento'); if (!itensOrcamentoTemp.length) { div.innerHTML = '<div class="empty-state">Nenhum item</div>'; document.getElementById('totalOrcamentoPreview').innerText = formatarMoeda(0); return; } div.innerHTML = itensOrcamentoTemp.map((item, idx) => `<div style="margin-bottom: 20px;"><div class="form-group"><label>Tipo de Serviço</label><select id="servicoSelect_${idx}" onchange="atualizarItemOrcamento(${idx}, 'servico', this.value)" style="width:100%">${opcoesServicosHTML()}</select></div><div class="form-group"><label>Valor (R$)</label><div style="display:flex; gap:8px; align-items:center;"><input type="text" placeholder="0,00" value="${item.valor ? item.valor.toFixed(2).replace('.', ',') : ''}" oninput="formatarValorEntrada(this); atualizarItemOrcamento(${idx}, 'valor', parseFloatBrasil(this.value))" style="flex:1"><button onclick="removerItemOrcamento(${idx})" class="btn-delete">🗑️</button></div></div><div class="form-group"><label>Descrição</label><textarea rows="3" onchange="atualizarItemOrcamento(${idx}, 'descricao', this.value)" placeholder="Descrição do serviço" style="width:100%">${item.descricao || ''}</textarea></div><hr style="border: none; border-top: 1px solid #E0E0DB; margin-top: 10px;"></div>`).join(''); itensOrcamentoTemp.forEach((item, idx) => { const selectEl = document.getElementById(`servicoSelect_${idx}`); if (selectEl) selectEl.value = item.servico; }); const total = itensOrcamentoTemp.reduce((s, i) => s + (i.valor || 0), 0); document.getElementById('totalOrcamentoPreview').innerText = formatarMoeda(total); }
+    function atualizarItemOrcamento(idx, campo, val) { if (campo === 'servico') { itensOrcamentoTemp[idx].servico = val; itensOrcamentoTemp[idx].descricao = obterDescricaoServico(val); const itemDiv = document.getElementById(`servicoSelect_${idx}`).closest('div').parentElement; const textarea = itemDiv.querySelector('textarea'); if (textarea) textarea.value = itensOrcamentoTemp[idx].descricao; } else if (campo === 'valor') { itensOrcamentoTemp[idx].valor = val || 0; } else { itensOrcamentoTemp[idx].descricao = val; } const total = itensOrcamentoTemp.reduce((s, i) => s + (i.valor || 0), 0); document.getElementById('totalOrcamentoPreview').innerText = formatarMoeda(total); }
+    function removerItemOrcamento(idx) { itensOrcamentoTemp.splice(idx, 1); renderizarItensOrcamento(); }
+    function salvarOrcamento() { const nome = document.getElementById('orcamentoClienteNome').value.trim(); if (!nome || itensOrcamentoTemp.length === 0) { mostrarSnackbar('Preencha o cliente e pelo menos um item'); return; } let cliente = clientes.find(c => c.nome === nome); if (!cliente) { cliente = { id: gerarIdUnico(), nome, telefone: '', veiculos: [], servicos: [] }; clientes.push(cliente); localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes)); atualizarDatalists(); renderizarListaClientesCadastro(); } const total = itensOrcamentoTemp.reduce((s, i) => s + (i.valor || 0), 0); orcamentos.push({ id: gerarIdUnico(), clienteId: cliente.id, data: new Date().toISOString(), itens: [...itensOrcamentoTemp], total, status: "Aprovado" }); localStorage.setItem("tmcar_orcamentos", JSON.stringify(orcamentos)); mostrarSnackbar('Orçamento salvo!'); itensOrcamentoTemp = []; renderizarItensOrcamento(); document.getElementById('orcamentoClienteNome').value = ''; renderizarListaOrcamentos(); }
+    function renderizarListaOrcamentos() { const container = document.getElementById('listaOrcamentos'); if (!orcamentos.length) { container.innerHTML = '<div class="empty-state">Nenhum orçamento</div>'; return; } container.innerHTML = orcamentos.map(o => { const c = clientes.find(cl => cl.id === o.clienteId); const itensHtml = o.itens.map(i => `<div style="margin-bottom:4px;"><strong>${i.servico}</strong> - ${formatarMoeda(i.valor)}<br><small>${(i.descricao || '').substring(0, 60)}</small></div>`).join(''); return `<div class="transacao-item"><div style="flex:1"><strong>${c ? c.nome : 'Cliente'}</strong><br>📅 ${new Date(o.data).toLocaleDateString()}<br><span class="badge" style="background:#2E7D32; color:white;">${o.status}</span><br>${itensHtml}<strong>Total: ${formatarMoeda(o.total)}</strong></div><div><button class="btn-edit" onclick="converterOrcamentoEmServico(${o.id})">✅ Converter</button></div></div>`; }).join(''); }
+    function converterOrcamentoEmServico(id) { const orc = orcamentos.find(o => o.id === id); if (!orc) return; const cliente = clientes.find(c => c.id === orc.clienteId); if (cliente) { orc.itens.forEach(item => { cliente.servicos.push({ id: gerarIdUnico(), tipo: item.servico, valor: item.valor, data: new Date().toISOString(), pago: false, descricao: item.descricao, valorPago: 0 }); }); localStorage.setItem("tmcar_clientes_final", JSON.stringify(clientes)); mostrarSnackbar('Orçamento convertido!'); renderizarHistorico(); renderizarDashboard(); renderizarFinanceiro(); } }
+
+    // ========== AGENDAMENTOS ==========
+    function carregarDescricaoAgendamento() { document.getElementById('agendaDescricao').value = obterDescricaoServico(document.getElementById('agendaTipoServico').value); }
+    function salvarAgendamento() { let nome = document.getElementById('agendaClienteNome').value.trim(); if(!nome) return; let cliente = clientes.find(c=>c.nome===nome); if(!cliente){ cliente={id:gerarIdUnico(), nome, telefone:'', veiculos:[], servicos:[]}; clientes.push(cliente); localStorage.setItem("tmcar_clientes_final",JSON.stringify(clientes)); atualizarDatalists(); renderizarListaClientesCadastro(); } agendamentos.push({id:gerarIdUnico(), clienteId:cliente.id, tipoServico:document.getElementById('agendaTipoServico').value, data:document.getElementById('agendaData').value, hora:document.getElementById('agendaHora').value, status:document.getElementById('agendaStatus').value, descricao:document.getElementById('agendaDescricao').value}); localStorage.setItem("tmcar_agendamentos", JSON.stringify(agendamentos)); mostrarSnackbar('Agendamento salvo'); renderizarAgendamentos(); renderizarDashboard(); }
+    function renderizarAgendamentos() { let container = document.getElementById('listaAgendamentos'); if(!agendamentos.length){ container.innerHTML='<div class="empty-state">Nenhum agendamento</div>'; return; } let sorted = [...agendamentos].sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora)); container.innerHTML = sorted.map(a => { let c = clientes.find(c=>c.id==a.clienteId); return `<div class="transacao-item"><div><strong>${c?c.nome:'Cliente'}</strong><br>📅 ${new Date(a.data).toLocaleDateString()} ${a.hora}<br>🔧 ${a.tipoServico}<br><span class="badge pendente">${a.status}</span></div><div><button class="btn-edit" onclick="editarAgendamento(${a.id})">✏️</button><button class="btn-delete" onclick="excluirAgendamento(${a.id})">🗑️</button></div></div>`; }).join(''); }
+    function excluirAgendamento(id) { if(confirm('Excluir?')){ agendamentos=agendamentos.filter(a=>a.id!=id); localStorage.setItem("tmcar_agendamentos",JSON.stringify(agendamentos)); renderizarAgendamentos(); renderizarDashboard(); } }
+    function editarAgendamento(id) { let a = agendamentos.find(a=>a.id==id); if(a){ let c = clientes.find(c=>c.id==a.clienteId); if(c) document.getElementById('agendaClienteNome').value = c.nome; document.getElementById('agendaTipoServico').value = a.tipoServico; document.getElementById('agendaData').value = a.data; document.getElementById('agendaHora').value = a.hora; document.getElementById('agendaStatus').value = a.status; document.getElementById('agendaDescricao').value = a.descricao; excluirAgendamento(id); mostrarSnackbar('Edite e salve novamente'); } }
+    function abrirModalAdicionarVeiculo() { document.getElementById('modalVeiculo').classList.add('active'); }
+    function fecharModalVeiculo() { document.getElementById('modalVeiculo').classList.remove('active'); }
+    function salvarVeiculoTemp() { let tipo=document.getElementById('tipoVeiculo').value, modelo=document.getElementById('modeloVeiculo').value.trim(); if(!modelo) return; veiculosTemp.push({id:gerarIdUnico(), tipo, modelo}); renderizarListaVeiculosTemp(); fecharModalVeiculo(); }
+    function renderizarListaVeiculosTemp() { document.getElementById('veiculosCadastroLista').innerHTML = veiculosTemp.map(v=>`<div>${v.tipo} ${v.modelo}<button class="btn-delete" onclick="removerVeiculoTemp(${v.id})">🗑️</button></div>`).join(''); }
+    function removerVeiculoTemp(id) { veiculosTemp = veiculosTemp.filter(v=>v.id!=id); renderizarListaVeiculosTemp(); }
+    function atualizarDatalists() { let nomes = clientes.map(c=>c.nome); ['clientesListGlobal','clientesListOrc','clientesListAgenda'].forEach(id=>{ let dl=document.getElementById(id); if(dl) dl.innerHTML=nomes.map(n=>`<option value="${n}">`).join(''); }); }
+    function filtrarClientes() { renderizarListaClientesCadastro(); }
+
+    // ========== ANÁLISE ==========
+    let registrosServicos = [];
+    function carregarRegistrosAnalise() { const saved = localStorage.getItem("tmcar_registros_servicos"); registrosServicos = saved ? JSON.parse(saved) : []; const filtroSelect = document.getElementById('filtroServico'); if (filtroSelect) { const servicosUnicos = [...new Set(registrosServicos.map(r => r.servico))]; filtroSelect.innerHTML = '<option value="">Todos os serviços</option>' + servicosUnicos.map(s => `<option value="${s}">${s}</option>`).join(''); } renderizarHistoricoAnalise(); renderizarResumoAnalise(); }
+    function salvarRegistrosAnalise() { localStorage.setItem("tmcar_registros_servicos", JSON.stringify(registrosServicos)); carregarRegistrosAnalise(); }
+    function getConfigAnalise() { const saved = localStorage.getItem('tmcar_config_analise'); return saved ? JSON.parse(saved) : { salarioBase: 1600, equipamentoCustoMensal: 550, prolaboreMensal: 2000, despesasFixasMensais: 2200, jornadaMensal: 260 }; }
+    function calcularAnalise() { const cfg = getConfigAnalise(); const preco = parseFloatBrasil(document.getElementById('analisePreco').value); const material = parseFloatBrasil(document.getElementById('analiseMaterial').value); const tempo = parseFloatBrasil(document.getElementById('analiseTempo').value); const outros = parseFloatBrasil(document.getElementById('analiseOutros').value); if (preco <= 0 || tempo <= 0) { document.getElementById('analiseCustoTotal').innerHTML = formatarMoeda(0); document.getElementById('analiseLucro').innerHTML = preco <= 0 ? '⚠️ Informe o preço' : formatarMoeda(0); document.getElementById('analiseMargem').innerHTML = '0,0%'; document.getElementById('analiseLucroHora').innerHTML = formatarMoeda(0); return; } const custoMensal = cfg.salarioBase + cfg.equipamentoCustoMensal + cfg.prolaboreMensal + cfg.despesasFixasMensais; const custoHora = custoMensal / (cfg.jornadaMensal || 260); const custoTotal = material + (tempo * custoHora) + outros; const lucro = preco - custoTotal; const margem = (lucro / preco) * 100; const lucroHora = lucro / tempo; document.getElementById('analiseCustoTotal').innerHTML = formatarMoeda(custoTotal); document.getElementById('analiseLucro').innerHTML = formatarMoeda(lucro); document.getElementById('analiseMargem').innerHTML = margem.toFixed(1) + '%'; document.getElementById('analiseLucroHora').innerHTML = formatarMoeda(lucroHora); }
+    function registrarExecucao() { const servico = document.getElementById('analiseServicoSelect').value; if (!servico) { mostrarSnackbar('Selecione um serviço'); return; } const preco = parseFloatBrasil(document.getElementById('analisePreco').value); if (preco <= 0) { mostrarSnackbar('Preço inválido'); return; } const material = parseFloatBrasil(document.getElementById('analiseMaterial').value); const tempo = parseFloatBrasil(document.getElementById('analiseTempo').value); const outros = parseFloatBrasil(document.getElementById('analiseOutros').value); const data = document.getElementById('analiseData').value || new Date().toISOString().split('T')[0]; if (tempo <= 0) { mostrarSnackbar('Tempo deve ser > 0'); return; } const cfg = getConfigAnalise(); const custoMensal = cfg.salarioBase + cfg.equipamentoCustoMensal + cfg.prolaboreMensal + cfg.despesasFixasMensais; const custoHora = custoMensal / (cfg.jornadaMensal || 260); const custoTotal = material + (tempo * custoHora) + outros; const lucro = preco - custoTotal; const margem = (lucro / preco) * 100; const lucroHora = lucro / tempo; registrosServicos.push({ id: Date.now(), servico, preco, material, tempo, outros, data, custoHora, custoTotal, lucro, margem, lucroPorHora: lucroHora }); salvarRegistrosAnalise(); mostrarSnackbar('✅ Execução registrada!'); ['analiseMaterial','analiseOutros','analiseTempo','analisePreco'].forEach(id => document.getElementById(id).value = ''); document.getElementById('analiseData').value = new Date().toISOString().split('T')[0]; calcularAnalise(); }
+    function renderizarHistoricoAnalise() { const filtroServico = document.getElementById('filtroServico')?.value || ''; const ordenar = document.getElementById('filtroOrdenar')?.value || 'data'; let lista = [...registrosServicos]; if (filtroServico) lista = lista.filter(r => r.servico === filtroServico); lista.sort((a,b) => { if (ordenar === 'data') return new Date(b.data) - new Date(a.data); if (ordenar === 'lucro') return b.lucro - a.lucro; return b.margem - a.margem; }); document.getElementById('historicoListaAnalise').innerHTML = lista.length ? lista.map(r => `<div class="transacao-item"><div><strong>${r.servico}</strong><br>📅 ${new Date(r.data).toLocaleDateString()}<br>💰 Lucro: ${formatarMoeda(r.lucro)} | Margem: ${r.margem.toFixed(1)}%</div><div><button class="btn-edit" onclick="editarRegistroAnalise(${r.id})">✏️</button><button class="btn-delete" onclick="excluirRegistroAnalise(${r.id})">🗑️</button></div></div>`).join('') : '<div class="empty-state">Nenhum registro</div>'; }
+    function excluirRegistroAnalise(id) { if (confirm('Excluir?')) { registrosServicos = registrosServicos.filter(r => r.id !== id); salvarRegistrosAnalise(); } }
+    function editarRegistroAnalise(id) { const reg = registrosServicos.find(r => r.id === id); if (!reg) return; document.getElementById('analiseServicoSelect').value = reg.servico; document.getElementById('analisePreco').value = reg.preco.toFixed(2).replace('.', ','); document.getElementById('analiseMaterial').value = reg.material.toFixed(2).replace('.', ','); document.getElementById('analiseTempo').value = reg.tempo.toFixed(1).replace('.', ','); document.getElementById('analiseOutros').value = reg.outros.toFixed(2).replace('.', ','); document.getElementById('analiseData').value = reg.data; calcularAnalise(); if (confirm('Excluir original e salvar edição?')) { excluirRegistroAnalise(id); } }
+    function renderizarResumoAnalise() { if (!registrosServicos.length) { document.getElementById('resumoRentabilidadeAnalise').innerHTML = '<div class="empty-state">Nenhum dado</div>'; return; } const maiorMargem = [...registrosServicos].sort((a,b)=>b.margem - a.margem)[0]; const maiorLucroHora = [...registrosServicos].sort((a,b)=>b.lucroPorHora - a.lucroPorHora)[0]; const lucroMedio = registrosServicos.reduce((s,r)=>s+r.lucro,0) / registrosServicos.length; const margemMedia = registrosServicos.reduce((s,r)=>s+r.margem,0) / registrosServicos.length; document.getElementById('resumoRentabilidadeAnalise').innerHTML = `<div class="resultado-grid"><div class="resultado-item"><label>⭐ Mais rentável</label><span>${maiorMargem.servico}<br>${maiorMargem.margem.toFixed(1)}%</span></div><div class="resultado-item"><label>⚡ Lucro/hora</label><span>${maiorLucroHora.servico}<br>${formatarMoeda(maiorLucroHora.lucroPorHora)}/h</span></div><div class="resultado-item"><label>📊 Média lucro</label><span>${formatarMoeda(lucroMedio)}</span></div><div class="resultado-item"><label>📈 Margem média</label><span>${margemMedia.toFixed(1)}%</span></div></div>`; }
+    function abrirConfigCalculadoraAnalise() { const cfg = getConfigAnalise(); document.getElementById('configCalcSalario').value = cfg.salarioBase; document.getElementById('configCalcEquipamento').value = cfg.equipamentoCustoMensal; document.getElementById('configCalcProlabore').value = cfg.prolaboreMensal; document.getElementById('configCalcDespesasFixas').value = cfg.despesasFixasMensais; document.getElementById('configCalcJornadaAnalise').value = cfg.jornadaMensal; document.getElementById('modalConfigCalculadoraAnalise').classList.add('active'); }
+    function salvarConfigCalculadoraAnalise() { const novo = { salarioBase: parseFloatBrasil(document.getElementById('configCalcSalario').value), equipamentoCustoMensal: parseFloatBrasil(document.getElementById('configCalcEquipamento').value), prolaboreMensal: parseFloatBrasil(document.getElementById('configCalcProlabore').value), despesasFixasMensais: parseFloatBrasil(document.getElementById('configCalcDespesasFixas').value), jornadaMensal: parseFloatBrasil(document.getElementById('configCalcJornadaAnalise').value) || 260 }; localStorage.setItem('tmcar_config_analise', JSON.stringify(novo)); mostrarSnackbar('Configurações salvas!'); fecharModal('modalConfigCalculadoraAnalise'); calcularAnalise(); }
+    function resetarConfigCalculadoraAnalise() { localStorage.setItem('tmcar_config_analise', JSON.stringify({ salarioBase: 1600, equipamentoCustoMensal: 550, prolaboreMensal: 2000, despesasFixasMensais: 2200, jornadaMensal: 260 })); mostrarSnackbar('Padrão restaurado'); fecharModal('modalConfigCalculadoraAnalise'); calcularAnalise(); }
+
+    // ========== NAVEGAÇÃO ==========
+    function mudarPagina(pagina) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(`page${pagina.charAt(0).toUpperCase()+pagina.slice(1)}`).classList.add('active'); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.querySelector(`.tab[data-page="${pagina}"]`).classList.add('active'); if(pagina === 'dashboard') renderizarDashboard(); if(pagina === 'financeiro') renderizarFinanceiro(); if(pagina === 'clientes') renderizarListaClientesCadastro(); if(pagina === 'novoServico') renderizarHistorico(); if(pagina === 'orcamentos') renderizarListaOrcamentos(); if(pagina === 'agendamentos') renderizarAgendamentos(); if(pagina === 'contas') renderizarContas(); if(pagina === 'analise') { carregarRegistrosAnalise(); calcularAnalise(); } }
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => mudarPagina(tab.getAttribute('data-page'))));
+
+    // ========== INICIALIZAÇÃO ==========
+    function init() { 
+        carregarTema(); 
+        carregarConfig(); 
+        inicializarDados(); 
+        popularSelectsServicos(); 
+        atualizarDatalists(); 
+        renderizarListaClientesCadastro(); 
+        renderizarFinanceiro(); 
+        renderizarHistorico(); 
+        renderizarListaOrcamentos(); 
+        renderizarAgendamentos(); 
+        renderizarContas(); 
+        renderizarDashboard(); 
+        document.getElementById('analiseData').value = new Date().toISOString().split('T')[0]; 
+        carregarRegistrosAnalise(); 
+        const categoriaSelect = document.getElementById('contaCategoria'); 
+        if (categoriaSelect) { 
+            categoriaSelect.addEventListener('change', atualizarInfoGrupo); 
+            atualizarInfoGrupo(); 
+        } 
+        const agendaServico = document.getElementById('agendaTipoServico'); 
+        if (agendaServico) { 
+            agendaServico.addEventListener('change', carregarDescricaoAgendamento); 
+            carregarDescricaoAgendamento(); 
+        } 
+        document.getElementById('novoServicoNome').addEventListener('input', (e) => { 
+            let cli = clientes.find(c=>c.nome===e.target.value); 
+            let grupo = document.getElementById('grupoVeiculoNovoServico'); 
+            if(cli && cli.veiculos?.length){ 
+                grupo.style.display='block'; 
+                document.getElementById('veiculoSelecionadoServico').innerHTML = cli.veiculos.map(v=>`<option value="${v.id}">${v.tipo} ${v.modelo}</option>`).join(''); 
+            } else grupo.style.display='none'; 
+        }); 
+    }
+    init();
+</script>
+</body>
+</html>
